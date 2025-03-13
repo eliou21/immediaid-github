@@ -10,10 +10,12 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
+import { Picker } from "@react-native-picker/picker";
 
 export default function SendSoS() {
   const [userInfo, setUserInfo] = useState({ fullName: "", address: "" });
   const [countdown, setCountdown] = useState(0);
+  const [emergencyType, setEmergencyType] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -27,6 +29,11 @@ export default function SendSoS() {
   }, []);
 
   const sendSOS = async () => {
+    if (!emergencyType) {
+      Alert.alert("Missing Emergency Type", "Please select the type of emergency.");
+      return;
+    }
+
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
@@ -37,7 +44,7 @@ export default function SendSoS() {
       let location = await Location.getCurrentPositionAsync({});
       const alertData = {
         id: Date.now(),
-        message: "🚨 SOS Alert! A resident needs help! 🚨",
+        message: `🚨 SOS Alert! Resident needs help! 🚨\n\nEmergency Type: ${emergencyType}`,
         timestamp: new Date().toLocaleString(),
         name: userInfo.fullName,
         address: userInfo.address,
@@ -69,6 +76,11 @@ export default function SendSoS() {
   };
 
   const handleSOSPress = () => {
+    if (!emergencyType) {
+      Alert.alert("Missing Emergency Type", "Please select the type of emergency.");
+      return;
+    }
+
     Alert.alert(
       "Confirm SOS",
       "Are you sure you want to send an SOS alert? This will notify the admin.",
@@ -83,18 +95,34 @@ export default function SendSoS() {
   };
 
   return (
-
     <ImageBackground source={require("../assets/background 1.png")} style={styles.background}>
-
       <View style={styles.container}>
-
         <View style={styles.banner}>
           <Image source={require("../assets/logo.png")} style={styles.logo} />
           <Text style={styles.appName}>IMMEDIAID</Text>
         </View>
 
         <View style={styles.sosContainer}>
-          <Text style={styles.title}>Press the button in case of an EMERGENCY!</Text>
+          <Text style={styles.title}>Select and press the button in case of an EMERGENCY!</Text>
+
+          {/* Emergency Type Picker */}
+          <View style={styles.pickerContainer}>
+          <Picker
+            selectedValue={emergencyType}
+            onValueChange={(itemValue) => setEmergencyType(itemValue)}
+            style={styles.picker}
+            dropdownIconColor="black"
+          >
+            <Picker.Item label="Select Emergency Type" value="" color="gray"/>
+            <Picker.Item label="Medical Emergency" value="Medical Emergency" color="black" />
+            <Picker.Item label="Rescue" value="Rescue" color="black" />
+            <Picker.Item label="Fire" value="Fire" color="black" />
+            <Picker.Item label="Flood" value="Flood" color="black" />
+            <Picker.Item label="Earthquake" value="Earthquake" color="black" />
+            <Picker.Item label="Crime/Assault" value="Crime/Assault" color="black" />
+          </Picker>
+
+          </View>
 
           {countdown > 0 ? (
             <Text style={styles.countdownText}>Sending SOS in {countdown} seconds...</Text>
@@ -104,9 +132,7 @@ export default function SendSoS() {
             </TouchableOpacity>
           )}
         </View>
-
       </View>
-
     </ImageBackground>
   );
 }
@@ -154,21 +180,41 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 20,
     width: 350,
-    height: 350,
+    height: 400, 
     padding: 20,
-    marginTop: 190,
+    marginTop: 150, 
     marginLeft: 30
   },
 
   title: {
     fontSize: 18,
-    marginBottom: 30,
+    marginBottom: 10,
     fontWeight: "bold",
     color: "red",
     letterSpacing: 2,
     textAlign: "center", 
   },
 
+  pickerContainer: {
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    backgroundColor: "#f9f9f9",
+    marginBottom: 20,
+    marginTop: 30,
+    padding: 2
+  },
+  
+  picker: {
+    height: 55,
+    width: 300,
+  },
+  
+  pickerItem: {
+    fontSize: 13,
+    color: "black",
+  },
+  
   sosButton: {
     backgroundColor: "red",
     padding: 15,
