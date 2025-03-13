@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { MaterialIcons } from "@expo/vector-icons";
 import AdminDashboard from "../screens/AdminDashboard";
 import PostNews from "../screens/PostNews";
+import EmergencyScreen from "../screens/Emergency";
 import ReceiveSoS from "../screens/RecieveSoS";
 import AdminSettingsStack from "../screens/AdminSettingStack"
 
@@ -39,6 +40,16 @@ export default function AdminNavigator() {
           ),
         }}
       />
+
+      <Tab.Screen
+        name="Emergency"
+        component={EmergencyScreen}
+        options={{
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="emergency" size={size} color={color} />
+          ),
+        }}
+      />      
 
       <Tab.Screen
         name="SoS Alerts"
