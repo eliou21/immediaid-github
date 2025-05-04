@@ -49,9 +49,7 @@ export default function ReceiveSoS() {
   };
 
   return (
-
     <ImageBackground source={require("../assets/background 1.png")} style={styles.background}>
-
       <View style={styles.container}>
 
         <View style={styles.banner}>
@@ -91,9 +89,7 @@ export default function ReceiveSoS() {
             <Text>No active SOS alerts.</Text>
           )}
         </View>
-
       </View>
-
     </ImageBackground>
   );
 }
@@ -118,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#5691A4",
     padding: 10,
-    justifyContent: "left",
+    justifyContent: "flex-start",
     marginTop: 40,
   },
 
@@ -144,7 +140,7 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    fontSize: 20,
+    fontSize: 25,
     fontWeight: "bold",
     marginBottom: 20,
     color: "#013042",
@@ -163,7 +159,8 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 10
+    marginBottom: 10,
+    textAlign: "center"
   },
 
   timestamp: {
