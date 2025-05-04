@@ -59,37 +59,60 @@ export default function SignupScreen({ navigation }) {
       Alert.alert("Error", "All fields are required!");
       return;
     }
-
+  
     if (!/^\d{10,11}$/.test(phone)) {
       Alert.alert("Error", "Phone number must be 10-11 digits!");
       return;
     }
-
+  
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match!");
       return;
     }
-
+  
     try {
       const user = { fullName, address, username, email, phone, password, profilePicture };
-      await AsyncStorage.setItem("userData", JSON.stringify(user));
-      Alert.alert("Success", "Account created successfully!");
-      navigation.navigate("Login");
+      console.log("Sending user data:", user); // ✅ Check if data is being sent
+  
+      const response = await fetch("http://192.168.68.113:5000/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user),
+      });
+  
+      // Log the actual response text for debugging
+      const text = await response.text(); // Get the response as text first
+      console.log("Response Text:", text);
+  
+      // Check if the response is JSON
+      let data;
+      try {
+        data = JSON.parse(text);  // Try parsing manually after logging
+      } catch (error) {
+        console.error("Error parsing response JSON:", error);
+        Alert.alert("Error", "Server response is not valid JSON.");
+        return;
+      }
+  
+      if (response.ok) {
+        Alert.alert("Success", "Account created successfully!");
+        navigation.navigate("Login");
+      } else {
+        Alert.alert("Error", data.message || "Signup failed!");
+      }
     } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to save user data.");
+      console.error("Signup Error:", error);
+      Alert.alert("Error", "Failed to connect to the server.");
     }
   };
+  
 
   return (
-
     <ImageBackground source={require("../assets/background 1.png")} style={styles.background}>
-
       <Image source={require("../assets/logo.png")} style={styles.image} />
-        <Text style={styles.title}>IMMEDIAID</Text>
+      <Text style={styles.title}>IMMEDIAID</Text>
 
       <View style={styles.container}>
-
         {/* Profile Picture Section */}
         <TouchableOpacity style={styles.imageContainer} onPress={handleChoosePhoto}>
           {profilePicture ? (
@@ -184,12 +207,11 @@ export default function SignupScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.navigate("Login")}>
           <Text style={styles.link}>Already have an account? Login</Text>
         </TouchableOpacity>
-
       </View>
-
     </ImageBackground>
   );
 }
+
 
 const styles = StyleSheet.create({
   background: {
@@ -241,11 +263,6 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
 
-  imagePlaceholder: {
-    color: "#777",
-    fontSize: 12,
-  },
-
   input: { 
     width: "100%", 
     padding: 10, 
@@ -280,7 +297,7 @@ const styles = StyleSheet.create({
     borderRadius: 5, 
     width: "100%", 
     alignItems: "center", 
-    marginTop: 20
+    marginTop: 5
   },
 
   buttonText: { 

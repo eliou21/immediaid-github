@@ -1,17 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Switch,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Alert,
-  SafeAreaView,
-  Platform,
-  StatusBar,
-  ImageBackground,
+  View, Text, TouchableOpacity, Switch, StyleSheet, ScrollView,
+  Image, Alert, SafeAreaView, ImageBackground, Platform, StatusBar
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
@@ -28,7 +18,7 @@ Notifications.setNotificationHandler({
 
 export default function UserSettingsScreen({ navigation }) {
   const [notifications, setNotifications] = useState(false);
-  const [user, setUser] = useState({ username: "User", profilePicture: null });
+  const [user, setUser] = useState({ username: "", profilePicture: null });
 
   useFocusEffect(
     React.useCallback(() => {
@@ -36,7 +26,8 @@ export default function UserSettingsScreen({ navigation }) {
         try {
           const storedUser = await AsyncStorage.getItem("userData");
           if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            const parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
           }
           const storedNotifications = await AsyncStorage.getItem("notifications");
           if (storedNotifications) {
@@ -46,43 +37,33 @@ export default function UserSettingsScreen({ navigation }) {
           console.error("Failed to load user data", error);
         }
       };
-
       loadUserData();
     }, [])
   );
 
   useEffect(() => {
     registerForPushNotificationsAsync();
-    const subscription = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        Alert.alert("New News Alert", notification.request.content.body);
-      }
-    );
-
+    const subscription = Notifications.addNotificationReceivedListener((notification) => {
+      Alert.alert("New News Alert", notification.request.content.body);
+    });
     return () => subscription.remove();
   }, []);
 
-  async function registerForPushNotificationsAsync() {
+  const registerForPushNotificationsAsync = async () => {
     if (Constants.isDevice) {
       const { status } = await Notifications.requestPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert(
-          "Permission Denied",
-          "Please enable notifications in settings."
-        );
+        Alert.alert("Permission Denied", "Please enable notifications in settings.");
         return;
       }
-
       const token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log("Expo Push Token:", token);
       await AsyncStorage.setItem("expoPushToken", token);
-    } 
-  }
+    }
+  };
 
   const handleToggleNotification = async (value) => {
     setNotifications(value);
     await AsyncStorage.setItem("notifications", JSON.stringify(value));
-
     if (value) {
       Alert.alert("Notifications Enabled", "You will receive alerts when new news is posted.");
     }
@@ -90,77 +71,49 @@ export default function UserSettingsScreen({ navigation }) {
 
   const handleLogout = async () => {
     Alert.alert("Log Out", "Are you sure you want to log out?", [
-      {
-        text: "Cancel",
-        style: "cancel",
-      },
+      { text: "Cancel", style: "cancel" },
       {
         text: "Log Out",
         onPress: async () => {
-          await AsyncStorage.setItem("isLoggedIn", "false");
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Welcome" }],
-          });
+          await AsyncStorage.clear();
+          navigation.reset({ index: 0, routes: [{ name: "Welcome" }] });
         },
       },
     ]);
   };
 
   return (
-
     <ImageBackground source={require("../assets/background 1.png")} style={styles.background}>
-
       <View style={styles.banner}>
         <Image source={require("../assets/logo.png")} style={styles.logo} />
         <Text style={styles.appName}>IMMEDIAID</Text>
       </View>
 
       <SafeAreaView style={styles.safeContainer}>
-        <View style={styles.statusBarFix} />
-
         <ScrollView contentContainerStyle={styles.scrollContent}>
 
-          {/* Profile Section */}
-
+          {/* Profile Section (Username only) */}
           <View style={styles.profileSection}>
             <Image
               source={
-                user.profilePicture
-                  ? { uri: user.profilePicture }
-                  : require("../assets/default.png")
+                user.profilePicture ? { uri: user.profilePicture } : require("../assets/default.png")
               }
               style={styles.profileImage}
             />
-            <Text style={styles.username}>{user.username}</Text>
+            <Text style={styles.username}>{user.username || "Unknown User"}</Text>
           </View>
 
-          {/* Profile Settings */}
-
           <Text style={styles.header}>PROFILE</Text>
-
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => navigation.navigate("UserEditProfile")}
-          >
+          <TouchableOpacity style={styles.option} onPress={() => navigation.navigate("UserEditProfile")}>
             <Text style={styles.optionText}>Edit Profile</Text>
           </TouchableOpacity>
 
-          {/* Security Section */}
-
           <Text style={styles.header}>SECURITY</Text>
-
-          <TouchableOpacity
-            style={styles.option}
-            onPress={() => navigation.navigate("UserChangePassword")}
-          >
+          <TouchableOpacity style={styles.option} onPress={() => navigation.navigate("UserChangePassword")}>
             <Text style={styles.optionText}>Change Password</Text>
           </TouchableOpacity>
 
-          {/* Notifications */}
-
           <Text style={styles.header}>NOTIFICATIONS</Text>
-
           <View style={styles.switchContainer}>
             <Text style={styles.switchLabel}>Enable Notifications</Text>
             <Switch
@@ -171,10 +124,7 @@ export default function UserSettingsScreen({ navigation }) {
             />
           </View>
 
-          {/* About Us and Legal Policies */}
-
           <Text style={styles.header}>ABOUT US AND LEGAL POLICIES</Text>
-          
           <TouchableOpacity style={styles.option} onPress={() => navigation.navigate("AboutUs")}>
             <Text style={styles.optionText}>About Us</Text>
           </TouchableOpacity>
@@ -184,20 +134,20 @@ export default function UserSettingsScreen({ navigation }) {
           <TouchableOpacity style={styles.option} onPress={() => navigation.navigate("PrivacyPolicy")}>
             <Text style={styles.optionText}>Privacy Policy</Text>
           </TouchableOpacity>
-          
-          {/* Log Out Button */}
 
           <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
             <Text style={styles.logoutText}>LOG OUT</Text>
           </TouchableOpacity>
 
         </ScrollView>
-
       </SafeAreaView>
-
     </ImageBackground>
   );
 }
+
+
+
+
 
 const styles = StyleSheet.create({
   safeContainer: {
