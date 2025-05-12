@@ -1,71 +1,74 @@
 import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert, 
-  StyleSheet, 
-  ImageBackground 
+import {
+  View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ImageBackground
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons"; 
+import { Ionicons } from "@expo/vector-icons";
 
 export default function LoginScreen({ navigation }) {
-  const [emailOrUsername, setEmailOrUsername] = useState(""); 
+  const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false); 
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     try {
-      const storedAdmins = await AsyncStorage.getItem("admins");
-      let admins = storedAdmins ? JSON.parse(storedAdmins) : [];
-  
-      const defaultAdmin = { email: "admin@gmail.com", password: "admin123", name: "Admin", profilePicture: null };
-  
-      if (!admins.some(admin => admin.email === defaultAdmin.email)) {
-        admins.push(defaultAdmin);
-        await AsyncStorage.setItem("admins", JSON.stringify(admins));
-      }
-  
-      const matchedAdmin = admins.find(
-        (admin) => 
-          (admin.email === emailOrUsername || admin.name === emailOrUsername) &&
-          admin.password === password
-      );
-  
-      if (matchedAdmin) {
+      // Check for admin credentials
+      if (emailOrUsername === "admin@gmail.com" && password === "admin123") {
+        const adminData = {
+          username: "admin",
+          email: "admin@gmail.com",
+          profilePicture: null,
+          phone: "",
+          address: "",
+          isAdmin: true
+        };
+
+        await AsyncStorage.setItem("token", "admin-token");
+        await AsyncStorage.setItem("userId", "admin-id");
+        await AsyncStorage.setItem("userData", JSON.stringify(adminData));
+
         Alert.alert("Success", "Admin login successful!");
-        await AsyncStorage.setItem("loggedInAs", "admin");
-        await AsyncStorage.setItem("currentAdmin", JSON.stringify(matchedAdmin)); // Store admin details
         navigation.replace("AdminNavigation");
         return;
       }
-  
-      const storedUser = await AsyncStorage.getItem("userData");
-      if (!storedUser) {
-        Alert.alert("Error", "No user found, please sign up first!");
+
+      const response = await fetch("http://192.168.1.7:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailOrUsername, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert("Error", data.message);
         return;
       }
-  
-      const { username, email, password: storedPassword } = JSON.parse(storedUser);
-  
-      if ((emailOrUsername === email || emailOrUsername === username) && password === storedPassword) {
-        Alert.alert("Success", "User login successful!");
-        await AsyncStorage.setItem("loggedInAs", "user");
-        navigation.replace("UserNavigation");
-      } else {
-        Alert.alert("Error", "Invalid credentials or account does not exist!");
-      }
+
+      // Ensure all user fields are properly initialized
+      const completeUserData = {
+        username: data.user.username || "",
+        email: data.user.email || "",
+        profilePicture: data.user.profilePicture || null,
+        phone: data.user.phone || "",
+        address: data.user.address || "",
+      };
+
+      // ✅ Save token, userId, and userData
+      await AsyncStorage.setItem("token", data.token);
+      await AsyncStorage.setItem("userId", data.user._id); // ✅ This was missing
+      await AsyncStorage.setItem("userData", JSON.stringify(completeUserData));
+
+      Alert.alert("Success", "Login successful!");
+      navigation.replace("UserNavigation");
     } catch (error) {
       console.error(error);
       Alert.alert("Error", "Something went wrong, please try again!");
     }
-  };  
+  };
 
   return (
     <ImageBackground source={require("../assets/sign.png")} style={styles.background}>
-
       <View style={styles.container}>
         <TextInput
           style={styles.input}
@@ -74,7 +77,6 @@ export default function LoginScreen({ navigation }) {
           value={emailOrUsername}
           onChangeText={setEmailOrUsername}
         />
-
         <View style={styles.passwordContainer}>
           <TextInput
             style={styles.passwordInput}
@@ -85,24 +87,16 @@ export default function LoginScreen({ navigation }) {
             onChangeText={setPassword}
           />
           <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-            <Ionicons 
-              name={showPassword ? "eye-off" : "eye"} 
-              size={24} 
-              color="rgba(147, 147, 147, 0.9)" 
-            />
+            <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="rgba(147, 147, 147, 0.9)" />
           </TouchableOpacity>
         </View>
-
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>LOGIN</Text>
         </TouchableOpacity>
-
         <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
           <Text style={styles.link}>Don't have an account? Sign up</Text>
         </TouchableOpacity>
-
       </View>
-
     </ImageBackground>
   );
 }

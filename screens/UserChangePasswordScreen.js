@@ -1,20 +1,22 @@
-import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ImageBackground, 
-  Image, 
-  KeyboardAvoidingView, 
-  ScrollView, 
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ImageBackground,
+  Image,
+  KeyboardAvoidingView,
+  ScrollView,
   Platform,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
+  Alert
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons"; 
 
 export default function UserChangePasswordScreen({ navigation }) {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -23,47 +25,100 @@ export default function UserChangePasswordScreen({ navigation }) {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState("");
+
+  useEffect(() => {
+    const getUserId = async () => {
+      try {
+        const storedUserId = await AsyncStorage.getItem("userId");
+        if (storedUserId) {
+          setUserId(storedUserId);
+        } else {
+          console.warn("User ID not found in AsyncStorage");
+        }
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+    getUserId();
+  }, []);
 
   const changePassword = async () => {
-    const storedUser = await AsyncStorage.getItem("userData");
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      if (currentPassword !== user.password) {
-        alert("Current password is incorrect!");
+    try {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        Alert.alert("Error", "Please fill in all fields.");
         return;
       }
+
       if (newPassword !== confirmPassword) {
-        alert("New passwords do not match!");
+        Alert.alert("Error", "New passwords do not match.");
         return;
       }
-      user.password = newPassword;
-      await AsyncStorage.setItem("userData", JSON.stringify(user));
-      alert("Password changed successfully!");
-      navigation.goBack();
+
+      if (newPassword === currentPassword) {
+        Alert.alert("Error", "New password must be different from the current one.");
+        return;
+      }
+
+      if (!userId) {
+        Alert.alert("Error", "User ID not found. Please log in again.");
+        return;
+      }
+
+      setLoading(true);
+      const token = await AsyncStorage.getItem("token");
+
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      const response = await axios.post(
+        "http://192.168.1.7:5000/api/auth/change-password", // ✅ Update to your server IP
+        {
+          userId,
+          currentPassword,
+          newPassword,
+        },
+        config
+      );
+
+      if (response.data.success) {
+        Alert.alert("Success", "Password changed successfully!");
+        navigation.goBack();
+      } else {
+        Alert.alert("Error", response.data.message || "Failed to change password.");
+      }
+    } catch (error) {
+      console.error("Password change error:", error.response?.data || error.message);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to change password. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-
     <ImageBackground source={require("../assets/background 1.png")} style={styles.background}>
-
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === "ios" ? "padding" : "height"} 
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-
           <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-
             <View style={styles.banner}>
               <Image source={require("../assets/logo.png")} style={styles.logo} />
               <Text style={styles.appName}>IMMEDIAID</Text>
             </View>
 
             <View style={styles.container}>
-
               <View style={styles.profileSection}>
-
                 <Text style={styles.title}>- Change Password -</Text>
 
                 {/* Current Password */}
@@ -75,15 +130,16 @@ export default function UserChangePasswordScreen({ navigation }) {
                     placeholder="Current Password"
                     value={currentPassword}
                     onChangeText={setCurrentPassword}
+                    autoCapitalize="none"
                   />
-                  <TouchableOpacity 
-                    onPress={() => setShowCurrentPassword(!showCurrentPassword)} 
+                  <TouchableOpacity
+                    onPress={() => setShowCurrentPassword(!showCurrentPassword)}
                     style={styles.eyeIcon}
                   >
-                    <Ionicons 
-                      name={showCurrentPassword ? "eye-off" : "eye"} 
-                      size={24} 
-                      color="rgba(147, 147, 147, 0.9)" 
+                    <Ionicons
+                      name={showCurrentPassword ? "eye-off" : "eye"}
+                      size={24}
+                      color="rgba(147, 147, 147, 0.9)"
                     />
                   </TouchableOpacity>
                 </View>
@@ -97,15 +153,16 @@ export default function UserChangePasswordScreen({ navigation }) {
                     placeholder="New Password"
                     value={newPassword}
                     onChangeText={setNewPassword}
+                    autoCapitalize="none"
                   />
-                  <TouchableOpacity 
-                    onPress={() => setShowNewPassword(!showNewPassword)} 
+                  <TouchableOpacity
+                    onPress={() => setShowNewPassword(!showNewPassword)}
                     style={styles.eyeIcon}
                   >
-                    <Ionicons 
-                      name={showNewPassword ? "eye-off" : "eye"} 
-                      size={24} 
-                      color="rgba(147, 147, 147, 0.9)" 
+                    <Ionicons
+                      name={showNewPassword ? "eye-off" : "eye"}
+                      size={24}
+                      color="rgba(147, 147, 147, 0.9)"
                     />
                   </TouchableOpacity>
                 </View>
@@ -119,37 +176,39 @@ export default function UserChangePasswordScreen({ navigation }) {
                     placeholder="Confirm New Password"
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
+                    autoCapitalize="none"
                   />
-                  <TouchableOpacity 
-                    onPress={() => setShowConfirmPassword(!showConfirmPassword)} 
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmPassword(!showConfirmPassword)}
                     style={styles.eyeIcon}
                   >
-                    <Ionicons 
-                      name={showConfirmPassword ? "eye-off" : "eye"} 
-                      size={24} 
-                      color="rgba(147, 147, 147, 0.9)" 
+                    <Ionicons
+                      name={showConfirmPassword ? "eye-off" : "eye"}
+                      size={24}
+                      color="rgba(147, 147, 147, 0.9)"
                     />
                   </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity style={styles.saveButton} onPress={changePassword}>
-                  <Text style={styles.saveText}>Change Password</Text>
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={changePassword}
+                  activeOpacity={0.8}
+                  disabled={loading}
+                >
+                  <Text style={styles.saveText}>
+                    {loading ? "Changing..." : "Change Password"}
+                  </Text>
                 </TouchableOpacity>
-
               </View>
-
             </View>
-
           </ScrollView>
-
         </TouchableWithoutFeedback>
-
       </KeyboardAvoidingView>
-
     </ImageBackground>
   );
 }
-
+// Your existing styles remain exactly the same
 const styles = StyleSheet.create({
   background: {
     flex: 1,
@@ -159,7 +218,6 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "rgba(28, 28, 28, 0.9)",
   },
-
   banner: {
     flexDirection: "row",
     alignItems: "center",
@@ -167,26 +225,22 @@ const styles = StyleSheet.create({
     padding: 10,
     marginTop: 40,
   },
-
   logo: {
     width: 60,
     height: 60,
     marginRight: 10,
   },
-
   appName: {
     fontSize: 30,
     fontWeight: "bold",
     color: "#013042",
     letterSpacing: 5,
   },
-
   container: {
     flex: 1,
     alignItems: "center",
     padding: 20,
   },
-
   profileSection: {
     width: "95%",
     backgroundColor: "white",
@@ -196,14 +250,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 130,
   },
-
   title: {
     fontSize: 25,
     fontWeight: "bold",
     marginBottom: 30,
     letterSpacing: 1,
   },
-
   label: {
     alignSelf: "flex-start",
     fontSize: 14,
@@ -211,7 +263,6 @@ const styles = StyleSheet.create({
     color: "#013042",
     marginBottom: 5,
   },
-
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -223,20 +274,17 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: "rgba(144, 144, 144, 0.19)",
   },
-
   passwordInput: {
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 10,
     color: "#013042",
   },
-
   eyeIcon: {
     padding: 10,
     justifyContent: "center",
     alignItems: "center",
   },
-
   saveButton: {
     backgroundColor: "#013042",
     padding: 10,
@@ -244,7 +292,6 @@ const styles = StyleSheet.create({
     width: 170,
     marginTop: 20,
   },
-
   saveText: {
     color: "#fff",
     letterSpacing: 1,
