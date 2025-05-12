@@ -8,7 +8,8 @@ import {
   StyleSheet, 
   ImageBackground, 
   Image, 
-  Platform 
+  Platform,
+  ScrollView
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Feather from "react-native-vector-icons/Feather";
@@ -122,87 +123,87 @@ export default function SignupScreen({ navigation }) {
           )}
         </TouchableOpacity>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Fullname (Lastname, Firstname M.I.)"
-          value={fullName}
-          onChangeText={setFullName}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Address"
-          value={address}
-          onChangeText={setAddress}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Phone Number"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
-
-        {/* Password Input with Eye Icon */}
-        <View style={styles.inputContainer}>
           <TextInput
-            style={styles.inputField}
-            placeholder="Password"
-            autoCapitalize="none"
-            secureTextEntry={!passwordVisible}
-            value={password}
-            onChangeText={setPassword}
+            style={styles.input}
+            placeholder="Fullname (Lastname, Firstname M.I.)"
+            value={fullName}
+            onChangeText={setFullName}
           />
-          <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
-            <Feather 
-              name={passwordVisible ? "eye-off" : "eye"} 
-              size={20} 
-              color="gray" 
-              style={styles.icon} 
-            />
-          </TouchableOpacity>
-        </View>
 
-        {/* Confirm Password Input with Eye Icon */}
-        <View style={styles.inputContainer}>
           <TextInput
-            style={styles.inputField}
-            placeholder="Confirm Password"
-            autoCapitalize="none"
-            secureTextEntry={!confirmPasswordVisible}
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            style={styles.input}
+            placeholder="Address"
+            value={address}
+            onChangeText={setAddress}
           />
-          <TouchableOpacity onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
-            <Feather 
-              name={confirmPasswordVisible ? "eye-off" : "eye"} 
-              size={20} 
-              color="gray" 
-              style={styles.icon} 
-            />
-          </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>REGISTER</Text>
-        </TouchableOpacity>
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            value={username}
+            onChangeText={setUsername}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number"
+            keyboardType="phone-pad"
+            value={phone}
+            onChangeText={setPhone}
+          />
+
+          {/* Password Input with Eye Icon */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputField}
+              placeholder="Password"
+              autoCapitalize="none"
+              secureTextEntry={!passwordVisible}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+              <Feather 
+                name={passwordVisible ? "eye-off" : "eye"} 
+                size={20} 
+                color="gray" 
+                style={styles.icon} 
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Confirm Password Input with Eye Icon */}
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.inputField}
+              placeholder="Confirm Password"
+              autoCapitalize="none"
+              secureTextEntry={!confirmPasswordVisible}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+            <TouchableOpacity onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
+              <Feather 
+                name={confirmPasswordVisible ? "eye-off" : "eye"} 
+                size={20} 
+                color="gray" 
+                style={styles.icon} 
+              />
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={styles.button} onPress={handleSignup}>
+            <Text style={styles.buttonText}>REGISTER</Text>
+          </TouchableOpacity>
 
         <TouchableOpacity onPress={() => navigation.navigate("Login")}>
           <Text style={styles.link}>Already have an account? Login</Text>
@@ -220,6 +221,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     height: "100%",
+  },
+
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
   },
 
   container: { 

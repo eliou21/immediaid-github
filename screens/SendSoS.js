@@ -6,7 +6,8 @@ import {
   Alert, 
   StyleSheet, 
   Image, 
-  ImageBackground 
+  ImageBackground, 
+  TextInput 
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
@@ -16,6 +17,7 @@ export default function SendSoS() {
   const [userInfo, setUserInfo] = useState({ fullName: "", address: "" });
   const [countdown, setCountdown] = useState(0);
   const [emergencyType, setEmergencyType] = useState("");
+  const [additionalDetails, setAdditionalDetails] = useState("");
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -44,15 +46,21 @@ export default function SendSoS() {
       let location = await Location.getCurrentPositionAsync({});
       const alertData = {
         id: Date.now(),
-        message: `🚨 SOS Alert! Resident needs help! 🚨\n\nEmergency Type: ${emergencyType}`,
+        message: `🚨 SOS Alert! Resident needs help! 🚨\n\nEmergency Type: ${emergencyType}\n\nDetails: ${additionalDetails}`,
         timestamp: new Date().toLocaleString(),
         name: userInfo.fullName,
         address: userInfo.address,
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
+        details: additionalDetails,
       };
 
-      await AsyncStorage.setItem("sosAlert", JSON.stringify(alertData));
+      const existingAlerts = await AsyncStorage.getItem("sosAlerts");
+      const alertsArray = existingAlerts ? JSON.parse(existingAlerts) : [];
+
+      alertsArray.push(alertData);
+
+      await AsyncStorage.setItem("sosAlerts", JSON.stringify(alertsArray));
 
       Alert.alert("SOS Sent", "Your alert has been sent to the admin!");
     } catch (error) {
@@ -123,6 +131,14 @@ export default function SendSoS() {
           </Picker>
 
           </View>
+
+          {/* Additional Details Input */}
+          <TextInput
+            style={styles.input}
+            placeholder="Additional Details (optional)"
+            value={additionalDetails}
+            onChangeText={setAdditionalDetails}
+          />
 
           {countdown > 0 ? (
             <Text style={styles.countdownText}>Sending SOS in {countdown} seconds...</Text>
@@ -237,5 +253,15 @@ const styles = StyleSheet.create({
     color: "red", 
     marginTop: 20,
     textAlign: "center", 
+  },
+
+  input: {
+    borderRadius: 15,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: "#f9f9f9",
+    width: 300,
   },
 });
