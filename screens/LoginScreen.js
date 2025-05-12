@@ -12,7 +12,27 @@ export default function LoginScreen({ navigation }) {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://192.168.68.113:5000/api/auth/login", {
+      // Check for admin credentials
+      if (emailOrUsername === "admin@gmail.com" && password === "admin123") {
+        const adminData = {
+          username: "admin",
+          email: "admin@gmail.com",
+          profilePicture: null,
+          phone: "",
+          address: "",
+          isAdmin: true
+        };
+
+        await AsyncStorage.setItem("token", "admin-token");
+        await AsyncStorage.setItem("userId", "admin-id");
+        await AsyncStorage.setItem("userData", JSON.stringify(adminData));
+
+        Alert.alert("Success", "Admin login successful!");
+        navigation.replace("AdminNavigation");
+        return;
+      }
+
+      const response = await fetch("http://192.168.1.7:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailOrUsername, password }),

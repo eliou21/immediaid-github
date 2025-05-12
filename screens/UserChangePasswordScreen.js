@@ -77,7 +77,7 @@ export default function UserChangePasswordScreen({ navigation }) {
       };
 
       const response = await axios.post(
-        "http://192.168.68.113:5000/api/auth/change-password", // ✅ Update to your server IP
+        "http://192.168.1.7:5000/api/auth/change-password", // ✅ Update to your server IP
         {
           userId,
           currentPassword,
