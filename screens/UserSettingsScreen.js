@@ -157,20 +157,6 @@ export default function UserSettingsScreen({ navigation }) {
             <Text style={styles.optionText}>Change Password</Text>
           </TouchableOpacity>
 
-          {/* Notifications */}
-
-          <Text style={styles.header}>NOTIFICATIONS</Text>
-
-          <View style={styles.switchContainer}>
-            <Text style={styles.switchLabel}>Enable Notifications</Text>
-            <Switch
-              value={notifications}
-              onValueChange={handleToggleNotification}
-              trackColor={{ false: "#767577", true: "#013042" }}
-              thumbColor={notifications ? "#fff" : "#f4f3f4"}
-            />
-          </View>
-
           {/* About Us and Legal Policies */}
 
           <Text style={styles.header}>ABOUT US AND LEGAL POLICIES</Text>

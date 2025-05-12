@@ -7,7 +7,8 @@ import {
   Linking, 
   ImageBackground, 
   Image, 
-  Alert 
+  Alert, 
+  ScrollView
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -16,9 +17,10 @@ export default function ReceiveSoS() {
 
   useEffect(() => {
     const fetchSOSAlert = async () => {
-      const storedAlert = await AsyncStorage.getItem("sosAlert");
-      if (storedAlert) {
-        setSosAlert(JSON.parse(storedAlert));
+      const storedAlerts = await AsyncStorage.getItem("sosAlerts");
+      if (storedAlerts) {
+        const alertsArray = JSON.parse(storedAlerts);
+        setSosAlert(alertsArray);
       }
     };
 
@@ -29,7 +31,7 @@ export default function ReceiveSoS() {
   }, []);
 
   const clearSOS = async () => {
-    await AsyncStorage.removeItem("sosAlert");
+    await AsyncStorage.removeItem("sosAlerts");
     setSosAlert(null);
   };
 
@@ -57,38 +59,41 @@ export default function ReceiveSoS() {
           <Text style={styles.appName}>IMMEDIAID</Text>
         </View>
 
-        <View style={styles.adminSosContainer}>
+        <ScrollView contentContainerStyle={styles.adminSosContainer}>
           <Text style={styles.title}>Admin SOS Alerts</Text>
 
-          {sosAlert ? (
-            <View style={styles.alertBox}>
-              <Text style={styles.alertText}>{sosAlert.message}</Text>
-              <Text style={styles.timestamp}>⏰  {sosAlert.timestamp}</Text>
-              <Text style={styles.info}>👤 Name: {sosAlert.name || "Unknown"}</Text>
-              <Text style={styles.info}>🏠 Address: {sosAlert.address || "Not provided"}</Text>
-              <Text style={styles.info}>
-                📍 Location: {sosAlert.latitude}, {sosAlert.longitude}
-              </Text>
-
-              {/* Open Google Maps */}
-              <TouchableOpacity
-                style={styles.mapButton}
-                onPress={() =>
-                  Linking.openURL(`https://www.google.com/maps?q=${sosAlert.latitude},${sosAlert.longitude}`)
-                }
-              >
-                <Text style={styles.mapText}>Directions</Text>
-              </TouchableOpacity>
-
-              {/* Resolve Button */}
-              <TouchableOpacity style={styles.clearButton} onPress={handleResolve}>
-                <Text style={styles.clearText}>Resolved</Text>
-              </TouchableOpacity>
-            </View>
+          {Array.isArray(sosAlert) && sosAlert.length > 0 ? (
+            sosAlert.map((alert, index) => (
+              <View key={index} style={styles.alertBox}>
+                <Text style={styles.alertText}>{alert.message}</Text>
+                <Text style={styles.timestamp}>⏰  {alert.timestamp}</Text>
+                <Text style={styles.info}>👤 Name: {alert.name || "Unknown"}</Text>
+                <Text style={styles.info}>🏠 Address: {alert.address || "Not provided"}</Text>
+                <Text style={styles.info}>
+                  📍 Location: {alert.latitude}, {alert.longitude}
+                </Text>
+                <Text style={styles.info}>
+                  📝 Additional Details: {alert.details || "No additional details provided."}
+                </Text>
+                {/* Open Google Maps */}
+                <TouchableOpacity
+                  style={styles.mapButton}
+                  onPress={() =>
+                    Linking.openURL(`https://www.google.com/maps?q=${alert.latitude},${alert.longitude}`)
+                  }
+                >
+                  <Text style={styles.mapText}>Directions</Text>
+                </TouchableOpacity>
+                {/* Resolve Button */}
+                <TouchableOpacity style={styles.clearButton} onPress={handleResolve}>
+                  <Text style={styles.clearText}>Resolved</Text>
+                </TouchableOpacity>
+              </View>
+            ))
           ) : (
             <Text>No active SOS alerts.</Text>
           )}
-        </View>
+        </ScrollView>
       </View>
     </ImageBackground>
   );
@@ -137,6 +142,7 @@ const styles = StyleSheet.create({
     padding: 20,
     margin: 20,
     alignItems: "center",
+    marginBottom: 30,
   },
 
   title: {
@@ -153,6 +159,7 @@ const styles = StyleSheet.create({
     justifyContent: "center", 
     alignItems: "center",
     width: "100%",
+    marginBottom: 10,
   },
 
   alertText: {
