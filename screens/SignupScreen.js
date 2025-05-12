@@ -110,18 +110,19 @@ export default function SignupScreen({ navigation }) {
 
   return (
     <ImageBackground source={require("../assets/background 1.png")} style={styles.background}>
-      <Image source={require("../assets/logo.png")} style={styles.image} />
-      <Text style={styles.title}>IMMEDIAID</Text>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <Image source={require("../assets/logo.png")} style={styles.image} />
+        <Text style={styles.title}>IMMEDIAID</Text>
 
-      <View style={styles.container}>
-        {/* Profile Picture Section */}
-        <TouchableOpacity style={styles.imageContainer} onPress={handleChoosePhoto}>
-          {profilePicture ? (
-            <Image source={{ uri: profilePicture }} style={styles.profileImage} />
-          ) : (
-            <Feather name="camera" size={30} color="#777" />
-          )}
-        </TouchableOpacity>
+        <View style={styles.container}>
+          {/* Profile Picture Section */}
+          <TouchableOpacity style={styles.imageContainer} onPress={handleChoosePhoto}>
+            {profilePicture ? (
+              <Image source={{ uri: profilePicture }} style={styles.profileImage} />
+            ) : (
+              <Feather name="camera" size={30} color="#777" />
+            )}
+          </TouchableOpacity>
 
           <TextInput
             style={styles.input}
@@ -205,10 +206,11 @@ export default function SignupScreen({ navigation }) {
             <Text style={styles.buttonText}>REGISTER</Text>
           </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Login")}>
-          <Text style={styles.link}>Already have an account? Login</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={() => navigation.navigate("Login")}>
+            <Text style={styles.link}>Already have an account? Login</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </ImageBackground>
   );
 }
