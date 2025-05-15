@@ -32,7 +32,7 @@ export default function LoginScreen({ navigation }) {
         return;
       }
 
-      const response = await fetch("http://192.168.1.7:5000/api/auth/login", {
+      const response = await fetch("http://192.168.0.103:5000/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emailOrUsername, password }),
@@ -47,6 +47,7 @@ export default function LoginScreen({ navigation }) {
 
       // Ensure all user fields are properly initialized
       const completeUserData = {
+        fullName: data.user.fullName || "Unknown User",
         username: data.user.username || "",
         email: data.user.email || "",
         profilePicture: data.user.profilePicture || null,
