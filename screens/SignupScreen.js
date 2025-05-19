@@ -55,19 +55,52 @@ export default function SignupScreen({ navigation }) {
     }
   };
 
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return regex.test(password);
+  };
+
+  const resetForm = () => {
+    setFullName("");
+    setAddress("");
+    setUsername("");
+    setEmail("");
+    setPhone("");
+    setPassword("");
+    setConfirmPassword("");
+    setProfilePicture(null);
+  };  
+
   const handleSignup = async () => {
     if (!username || !email || !phone || !password || !confirmPassword) {
       Alert.alert("Error", "All fields are required!");
       return;
     }
+    if (!validateEmail(email)) {
+      Alert.alert("Error", "Please enter a valid email address!");
+      setEmail(""); 
+      return;
+    }
   
-    if (!/^\d{10,11}$/.test(phone)) {
-      Alert.alert("Error", "Phone number must be 10-11 digits!");
+    if (!/^\d{11}$/.test(phone)) {
+      Alert.alert("Error", "Phone number must be 11 digits!");
+      setPhone("");
+      return;
+    }
+    if (!validatePassword(password)) {
+      Alert.alert("Error", "Password must be at least 8 characters, include uppercase, lowercase, and a number!");
+      setPassword("");
       return;
     }
   
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match!");
+      setConfirmPassword("");
       return;
     }
   
