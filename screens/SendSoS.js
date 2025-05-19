@@ -80,7 +80,7 @@ export default function SendSoS() {
     };
 
     try {
-      await axios.post("http://192.168.0.103:5000/api/sos", alertData); // 🔁 Replace with your IP and port
+      await axios.post("http://172.20.10.4:5000/api/sos", alertData); // 🔁 Replace with your IP and port
       Alert.alert("Success", "SOS alert sent!");
       setAdditionalDetails("");
       setEmergencyType("");

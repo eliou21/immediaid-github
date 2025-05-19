@@ -5,13 +5,16 @@ import {
   FlatList, 
   StyleSheet, 
   ImageBackground, 
-  Image 
+  Image,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
+import axios from "axios";
 
-export default function AdminDashboard() {
+export default function UserDashboard() {
   const [newsList, setNewsList] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -20,56 +23,62 @@ export default function AdminDashboard() {
   );
 
   const loadNews = async () => {
+    setLoading(true);
     try {
-      const storedNews = await AsyncStorage.getItem("news");
-      if (storedNews) {
-        setNewsList(JSON.parse(storedNews));
-      }
+      const response = await axios.get("http://172.20.10.4:5000/api/news");
+      setNewsList(response.data || []);
     } catch (error) {
-      console.error("Error loading news:", error);
+      console.error("❌ Error loading news from backend:", error.message);
+      Alert.alert("Error", "Could not load news. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
+  const renderNewsItem = ({ item }) => {
+    const hasImage = item.image && item.image !== "https://via.placeholder.com/150";
+
+    return (
+      <View style={styles.newsItem}>
+        <View style={styles.newsContent}>
+          {hasImage && (
+            <Image
+              source={{ uri: item.image }}
+              style={styles.newsImage}
+            />
+          )}
+          <Text style={styles.newsTitle}>{item.title}</Text>
+          <Text style={styles.newsText}>{item.content}</Text>
+        </View>
+      </View>
+    );
+  };
+
   return (
-
-    <ImageBackground source={require("../assets/background 1.png")} style={styles.background}>
-
-      {/* Banner at the Top */}
+    <ImageBackground
+      source={require("../assets/background 1.png")}
+      style={styles.background}
+    >
+      {/* Banner */}
       <View style={styles.banner}>
         <Image source={require("../assets/logo.png")} style={styles.logo} />
         <Text style={styles.appName}>IMMEDIAID</Text>
       </View>
 
       <View style={styles.container}>
-        {newsList.length === 0 ? (
+        {loading ? (
+          <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
+        ) : newsList.length === 0 ? (
           <Text style={styles.noNews}>No News Available</Text>
         ) : (
           <FlatList
             data={newsList}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item, index }) => {
-              const hasImage = item.image && item.image !== "https://via.placeholder.com/150";
-
-              return (
-                <View style={styles.newsItem}>
-                  <View style={styles.newsContent}>
-                    {hasImage && (
-                      <Image
-                        source={{ uri: item.image }}
-                        style={styles.newsImage}
-                      />
-                    )}
-                    <Text style={styles.newsTitle}>{item.title}</Text>
-                    <Text style={styles.newsText}>{item.content}</Text>                    
-                  </View>
-                </View>
-              );
-            }}
+            keyExtractor={(item) => item._id}
+            renderItem={renderNewsItem}
+            contentContainerStyle={{ paddingBottom: 50 }}
           />
         )}
-
       </View>
-      
     </ImageBackground>
   );
 }
@@ -81,44 +90,37 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: "100%",
     height: "100%",
-    backgroundColor: "rgba(28, 28, 28, 0.9)"
+    backgroundColor: "rgba(28, 28, 28, 0.9)",
   },
-
   banner: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#5691A4", 
+    backgroundColor: "#5691A4",
     padding: 10,
-    justifyContent: "left",
-    marginTop: 40
+    marginTop: 40,
   },
-
   logo: {
-    width: 60, 
-    height: 60, 
-    marginRight: 10, 
+    width: 60,
+    height: 60,
+    marginRight: 10,
   },
-
   appName: {
     fontSize: 30,
     fontWeight: "bold",
     color: "#013042",
-    letterSpacing: 5
+    letterSpacing: 5,
   },
-
-  container: { 
-    flex: 1, 
+  container: {
+    flex: 1,
     padding: 20,
   },
-
-  noNews: { 
-    textAlign: "center", 
-    fontSize: 13, 
-    color: "#fff", 
+  noNews: {
+    textAlign: "center",
+    fontSize: 14,
+    color: "#fff",
     marginTop: 20,
-    letterSpacing: 2
+    letterSpacing: 1,
   },
-
   newsItem: {
     backgroundColor: "#fff",
     borderRadius: 10,
@@ -129,33 +131,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    alignItems: "center"
+    alignItems: "center",
   },
-
-  newsContent: { 
-    flex: 1, 
-    alignItems: "center"
+  newsContent: {
+    flex: 1,
+    alignItems: "center",
   },
-
-  newsTitle: { 
-    fontSize: 18, 
+  newsTitle: {
+    fontSize: 18,
     fontWeight: "bold",
     marginBottom: 5,
-    color: "rgba(50, 50, 50, 0.99)"
+    color: "rgba(50, 50, 50, 0.99)",
   },
-
   newsImage: {
-    width: 340, 
+    width: 340,
     height: 180,
     marginBottom: 15,
     borderRadius: 5,
-    resizeMode: "cover"
-  },  
-
+    resizeMode: "cover",
+  },
   newsText: {
     fontSize: 14,
     color: "rgba(84, 84, 84, 0.99)",
     textAlign: "center",
-    marginVertical: 5
+    marginVertical: 5,
   },
 });

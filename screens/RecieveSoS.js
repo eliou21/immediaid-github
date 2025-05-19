@@ -19,7 +19,7 @@ export default function ReceiveSoS() {
 
   const fetchSOSAlert = async () => {
     try {
-      const response = await axios.get("http://192.168.0.103:5000/api/sos");
+      const response = await axios.get("http://172.20.10.4:5000/api/sos");
       setSosAlerts(response.data);
     } catch (error) {
       console.error("Failed to fetch SOS alerts:", error.message);

@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as Notifications from "expo-notifications";
 import * as Permissions from "expo-permissions";
+import axios from "axios";
 
 export default function PostNews({ navigation }) {
   const [title, setTitle] = useState("");
@@ -84,38 +85,30 @@ export default function PostNews({ navigation }) {
   };
 
   const handlePostNews = async () => {
-    if (!title || !content) {
-      Alert.alert("Error", "All fields are required!");
-      return;
-    }
+  if (!title || !content) {
+    Alert.alert("Error", "All fields are required!");
+    return;
+  }
 
-    try {
-      const storedNews = await AsyncStorage.getItem("news");
-      const newsList = storedNews ? JSON.parse(storedNews) : [];
+  try {
+    const response = await axios.post("http://172.20.10.4:5000/api/news", {
+      title,
+      content,
+      image,
+    });
 
-      const newPost = { title, content, image };
-      newsList.push(newPost);
+    await sendNotificationToUsers(title);
 
-      await AsyncStorage.setItem("news", JSON.stringify(newsList));
-      await sendNotificationToUsers(title);
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: "News Posted!",
-          body: `There is a new news "${title}" posted from IMMEDIAID.`,
-          sound: "default",
-        },
-        trigger: null,
-      });
-
-      Alert.alert("Success", "News posted successfully!");
-      setTitle("");
-      setContent("");
-      setImage(null);
-      navigation.navigate("Dashboard");
-    } catch (error) {
-      console.error("Error saving news:", error);
-    }
-  };
+    Alert.alert("Success", "News posted successfully!");
+    setTitle("");
+    setContent("");
+    setImage(null);
+    navigation.navigate("Dashboard");
+  } catch (error) {
+    console.error("Error posting news:", error.message);
+    Alert.alert("Error", "Failed to post news");
+  }
+};
 
   return (
 

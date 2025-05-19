@@ -75,7 +75,7 @@ export default function SignupScreen({ navigation }) {
       const user = { fullName, address, username, email, phone, password, profilePicture };
       console.log("Sending user data:", user); // ✅ Check if data is being sent
   
-      const response = await fetch("http://192.168.0.103:5000/api/auth/signup", {
+      const response = await fetch("http://172.20.10.4:5000/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user),
